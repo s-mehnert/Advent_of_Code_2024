@@ -42,6 +42,9 @@ def is_safe(report):
     return False
 
 
+
+
+
 def is_safe_2(report, removed_single_bad_level=False):
     if is_ascending(report):
         for i in range(len(report)-1):
@@ -52,10 +55,7 @@ def is_safe_2(report, removed_single_bad_level=False):
                 reports_one_bad_removed = [report[:i] + report[i+1:] for i in range(len(report))]
                 for rep in reports_one_bad_removed:
                     if is_safe_2(rep, True):
-                        print("safe")
                         return True
-                print(reports_one_bad_removed)
-                print("unsafe:", report)
                 return False
         return True
     if is_descending(report):
@@ -67,13 +67,18 @@ def is_safe_2(report, removed_single_bad_level=False):
                 reports_one_bad_removed = [report[:i] + report[i+1:] for i in range(len(report))]
                 for rep in reports_one_bad_removed:
                     if is_safe_2(rep, True):
-                        print("safe")
                         return True
-                print(reports_one_bad_removed)
-                print("unsafe:", report)
                 return False
         return True
+    if removed_single_bad_level:
+        return False
+    removed_single_bad_level = True
+    reports_one_bad_removed = [report[:i] + report[i+1:] for i in range(len(report))]
+    for rep in reports_one_bad_removed:
+        if is_safe_2(rep, True):
+            return True
     return False
+
 
 result_1 = 0
 for report in reports_list:
