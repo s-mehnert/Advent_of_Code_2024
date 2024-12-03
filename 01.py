@@ -7,10 +7,11 @@ with open("01_input.txt") as input:
 
 # format data
 
-left_list = sorted([int(l[0]) for l in imported_data])
-right_list = sorted([int(l[1]) for l in imported_data])
+left_list = sorted([int(lst[0]) for lst in imported_data])
+right_list = sorted([int(lst[1]) for lst in imported_data])
 
 # calculate result
+
 
 def sum_differences(ll, rl):
     diff = 0
@@ -18,11 +19,13 @@ def sum_differences(ll, rl):
         diff += (abs(ll[i]-rl[i]))
     return diff
 
+
 def sum_similarities(ll, rl):
     similarity_code = 0
     for num in ll:
         similarity_code += (num * rl.count(num))
     return similarity_code
+
 
 result_1 = sum_differences(left_list, right_list)
 result_2 = sum_similarities(left_list, right_list)

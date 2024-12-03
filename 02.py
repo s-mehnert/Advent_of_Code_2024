@@ -42,9 +42,6 @@ def is_safe(report):
     return False
 
 
-
-
-
 def is_safe_2(report, removed_single_bad_level=False):
     if is_ascending(report):
         for i in range(len(report)-1):
