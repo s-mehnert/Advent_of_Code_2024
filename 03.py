@@ -23,6 +23,7 @@ def extract_mul_1(input):
             end = 0
     return [input[ext[0]:ext[1]] for ext in extraction]
 
+
 def extract_mul_2(input):
     extraction = list()
     start = 0
