@@ -154,10 +154,74 @@ def check_for_xmas(grid: list, pos: tuple, dirs: list) -> int:
         for dir in dirs:
             xmas_count += direction_dict[dir](grid, pos)
 
-    if xmas_count > 0:
-        print(f"Adding {xmas_count} at {pos}")
+    # if xmas_count > 0:
+    #     print(f"Adding {xmas_count} at {pos}")
 
     return xmas_count
+
+
+# --- PART 2 ---
+
+
+def check_for_mas_diag_dr(grid: list, pos: tuple) -> bool:
+    row, col = pos
+    if grid[row+1][col+1] == "A":
+        if grid[row+2][col+2] == "S":
+            return True
+    return False
+
+
+def check_for_sam_diag_dr(grid: list, pos: tuple) -> bool:
+    row, col = pos
+    if grid[row+1][col+1] == "A":
+        if grid[row+2][col+2] == "M":
+            return True
+    return False
+
+
+def check_for_mas_diag_dl(grid: list, pos: tuple) -> bool:
+    row, col = pos
+    if grid[row+1][col-1] == "A":
+        if grid[row+2][col-2] == "S":
+            return True
+    return False
+
+
+def check_for_sam_diag_dl(grid: list, pos: tuple) -> bool:
+    row, col = pos
+    if grid[row+1][col-1] == "A":
+        if grid[row+2][col-2] == "M":
+            return True
+    return False
+
+
+def check_for_x(grid: list, pos: tuple) -> int:
+    row, col = pos
+    x_count = 0
+
+    if grid[row][col] == "M":
+        if check_for_mas_diag_dr(grid, pos):
+            pos_2 = (row, col+2)
+            if grid[row][col+2] == "M":
+                if check_for_mas_diag_dl(grid, pos_2):
+                    x_count += 1
+            if grid[row][col+2] == "S":
+                if check_for_sam_diag_dl(grid, pos_2):
+                    x_count += 1
+    if grid[row][col] == "S":
+        if check_for_sam_diag_dr(grid, pos):
+            pos_2 = (row, col+2)
+            if grid[row][col+2] == "M":
+                if check_for_mas_diag_dl(grid, pos_2):
+                    x_count += 1
+            if grid[row][col+2] == "S":
+                if check_for_sam_diag_dl(grid, pos_2):
+                    x_count += 1
+
+    # if x_count > 0:
+    #     print(f"Adding {x_count} at {pos}")
+
+    return x_count
 
 
 # calculate result
@@ -172,6 +236,11 @@ for row in range(len(puzzle_grid)):
 
 print("XMAS count:", result_1)
 
-# result_2 = 0
+result_2 = 0
 
-# print("Result 2:", result_2)
+for row in range(len(puzzle_grid)-2):
+    for col in range(len(puzzle_grid[0])-2):
+        pos = (row, col)
+        result_2 += check_for_x(puzzle_grid, pos)
+
+print("X-MAS count:", result_2)
