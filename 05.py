@@ -41,6 +41,26 @@ def calculate_sum_of_middle_page_nums(correct_updates: list) -> int:
     return sum_mps
 
 
+# --- Part 2 ---
+
+
+def swap_places(update, idx1, idx2):
+    update[idx1], update[idx2] = update[idx2], update[idx1]
+    return update
+
+
+def reorder_update(update: list, rules: list) -> list:
+
+    for i in range(len(update)):
+        for rule in rules:
+            if update[i] in rule:
+                first, last = rule
+                if update[i] == last:
+                    if first in update[i+1:]:
+                        swapped = swap_places(update, i, update.index(first))
+                        return swapped
+
+
 # calculate result
 
 correct_updates = list()
@@ -52,6 +72,12 @@ result_1 = calculate_sum_of_middle_page_nums(correct_updates)
 
 print("Sum of correct updates' middle pages:", result_1)
 
-# result_2 = 0
+wrong_updates = [update for update in formatted_updates if update not in correct_updates]
 
-# print("X-MAS count:", result_2)
+for update in wrong_updates:
+    while not has_correct_order(update, formatted_rules):
+        reorder_update(update, formatted_rules)
+
+result_2 = calculate_sum_of_middle_page_nums(wrong_updates)
+
+print("Sum of reordered updates' middle pages:", result_2)
