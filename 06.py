@@ -136,7 +136,7 @@ def walks_in_loop(grid) -> bool:
     current_pos, facing, obstacles, max_row, max_col = evaluate_starting_grid(grid)
     obstacles_faced = list()
     is_loop = False
-    
+
     dist_1, visited, obstacles_faced = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
     current_pos = teleport_guard(current_pos, dist_1, facing)
 
@@ -164,7 +164,7 @@ def walks_in_loop(grid) -> bool:
 
 def toggle_obstacle_or_not_in_grid(grid, toggle_position):
     row, col = toggle_position
-    
+
     if grid[row][col] == "#":
         grid[row][col] = "."
     elif grid[row][col] == ".":
@@ -208,18 +208,14 @@ temp_grid = imported_data[:]
 obstacle_positions_for_loop = list()
 
 # wrong solution with real data: 1750 - takes extremely long to compute
+for pos in visited:
+    if pos != start:
+        grid_to_test = toggle_obstacle_or_not_in_grid(temp_grid[:], pos)
 
-for row in helper_grid:
-    for pos in row:
-        if pos != start:
-            grid_to_test = toggle_obstacle_or_not_in_grid(temp_grid[:], pos)
-            print("Testing position: -->", pos)
+        if walks_in_loop(grid_to_test):
+            obstacle_positions_for_loop.append(pos)
 
-            if walks_in_loop(grid_to_test):
-                obstacle_positions_for_loop.append(pos)
-                print("Found valid obstacle for creating loop at position: -->", pos)
-
-            temp_grid = toggle_obstacle_or_not_in_grid(grid_to_test, pos)
+        temp_grid = toggle_obstacle_or_not_in_grid(grid_to_test, pos)
 
 print()
 print("Number of possible locations for creating a loop:", len(obstacle_positions_for_loop))
