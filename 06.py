@@ -4,21 +4,17 @@ imported_data = list()
 
 with open("06_input.txt") as input:
     for line in input.readlines():
-        imported_data.append(line.strip("\n"))
-
-for line in imported_data:
-    print(line)
-print()
-
-
-# format data
-
-formatted_data = list()
-
-helper_grid = [[(i, j) for j in range(len(imported_data[0]))] for i in range(len(imported_data))]
+        imported_data.append([pos for pos in line.strip("\n")])
 
 
 # helper functions
+
+
+def print_grid(grid):
+    for line in grid:
+        for pos in line:
+            print(pos, end="")
+        print()
 
 
 def evaluate_starting_grid(grid: list) -> tuple:
@@ -43,12 +39,14 @@ def count_distance_to_obstacle(guard_pos: tuple, facing: str, obstacles: list, m
     row, col = guard_pos
     distance = None
     visited = list()
+    obstacles_faced = list()
 
     if facing == "^":
         for step in range(row, -1, -1):
             if (step, col) not in visited:
                 visited.append((step, col))
             if (step, col) in obstacles:
+                obstacles_faced.append((step, col))
                 distance = row-step-1
                 visited.pop()
                 break
@@ -81,7 +79,7 @@ def count_distance_to_obstacle(guard_pos: tuple, facing: str, obstacles: list, m
                 break
             distance = step-col
 
-    return distance, visited
+    return distance, visited, obstacles_faced
 
 
 def teleport_guard(guard_pos: tuple, distance: int, facing: str) -> tuple:
@@ -124,26 +122,104 @@ def turn_guard(facing: str) -> str:
     return turning_rules[facing]
 
 
+# --- Part 2 ---
+
+# Add obstacle in all visited positions calculated before
+# Do this be appending (and then again removing) the position to the obstacles' list
+# one after the other except for the guards starting position
+# After adding an obstacle check if guard walks now in a loop
+# Do this by recording the obstacles the guard encounters on their tour
+# Once he is at the same obstacle for a second time, he is stuck
+
+
+def walks_in_loop(grid) -> bool:
+    current_pos, facing, obstacles, max_row, max_col = evaluate_starting_grid(grid)
+    obstacles_faced = list()
+    is_loop = False
+    
+    dist_1, visited, obstacles_faced = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
+    current_pos = teleport_guard(current_pos, dist_1, facing)
+
+    while not is_leaving_grid(current_pos, facing, max_row, max_col):
+        break_out_of_loop = False
+        facing = turn_guard(facing)
+        distance, newly_visited, newly_faced_obstacles = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
+
+
+        for obstacle in newly_faced_obstacles:
+            if obstacle in obstacles_faced:
+                break_out_of_loop = True
+                break
+
+        if break_out_of_loop:
+            is_loop = True
+            break
+
+        current_pos = teleport_guard(current_pos, distance, facing)
+        visited += [pos for pos in newly_visited if pos not in visited]
+        obstacles_faced += newly_faced_obstacles
+
+    return is_loop
+
+
+def toggle_obstacle_or_not_in_grid(grid, toggle_position):
+    row, col = toggle_position
+    
+    if grid[row][col] == "#":
+        grid[row][col] = "."
+    elif grid[row][col] == ".":
+        grid[row][col] = "#"
+
+    return grid
+
+
 # calculate result
+
+print()
+print_grid(imported_data)
 
 start, dir, obstacles, max_row, max_col = evaluate_starting_grid(imported_data)
 current_pos = start
 facing = dir
 visited = list()
+obstacles_faced = list()
 
 # first move
 
-dist_1, visited = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
+dist_1, visited, obstacles_faced = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
 current_pos = teleport_guard(current_pos, dist_1, facing)
-print("After first move guard at position:", current_pos)
+print("\nAfter first move guard at position:", current_pos)
 
 # all further moves
 
 while not is_leaving_grid(current_pos, facing, max_row, max_col):
     facing = turn_guard(facing)
-    distance, newly_visited = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
+    distance, newly_visited, newly_faced_obstacles = count_distance_to_obstacle(current_pos, facing, obstacles, max_row, max_col)
     current_pos = teleport_guard(current_pos, distance, facing)
     visited += [pos for pos in newly_visited if pos not in visited]
+    obstacles_faced += newly_faced_obstacles
 
 print("Guard left grid at pos:", current_pos)
 print(f"Guard visited --- {len(visited)} --- distinct positions on grid.")
+
+helper_grid = [[(i, j) for j in range(len(imported_data[0]))] for i in range(len(imported_data))]
+
+temp_grid = imported_data[:]
+obstacle_positions_for_loop = list()
+
+# wrong solution with real data: 1750 - takes extremely long to compute
+
+for row in helper_grid:
+    for pos in row:
+        if pos != start:
+            grid_to_test = toggle_obstacle_or_not_in_grid(temp_grid[:], pos)
+            print("Testing position: -->", pos)
+
+            if walks_in_loop(grid_to_test):
+                obstacle_positions_for_loop.append(pos)
+                print("Found valid obstacle for creating loop at position: -->", pos)
+
+            temp_grid = toggle_obstacle_or_not_in_grid(grid_to_test, pos)
+
+print()
+print("Number of possible locations for creating a loop:", len(obstacle_positions_for_loop))
