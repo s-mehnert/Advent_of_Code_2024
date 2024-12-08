@@ -19,7 +19,7 @@ def equation_is_possible(equation: list) -> bool:
     test_value = equation[0]
     numbers = equation[1:]
 
-    possible_operator_combinations = list(product(["+", "*"], repeat=len(numbers)-1))
+    possible_operator_combinations = list(product(["+", "*", "||"], repeat=len(numbers)-1))
 
     for combo in possible_operator_combinations:
         nums = numbers[:]
@@ -32,6 +32,8 @@ def equation_is_possible(equation: list) -> bool:
                     temp_result += nums.pop(0)                 
                 elif combo[i] == "*":
                     temp_result *= nums.pop(0)
+                elif combo[i] == "||":
+                    temp_result = int(str(temp_result) + str(nums.pop(0)))
 
         if temp_result == test_value:
             return True
