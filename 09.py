@@ -76,74 +76,31 @@ def move_blocks(files: list, freespaces: list) -> list:
 
 
 def move_whole_blocks(files: list, freespaces: list) -> list:
-    new_diskmap = [files.pop(0)]
-    blocks_remaining_at_end = list()
-    # decompressed_diskmap = [tuple for pair in zip(freespaces, files) for tuple in pair]
-    # next = None
-    next_block = None
-    # next_free = None
+    temp = files.pop(0)
+    new_diskmap = list()
+    for i in range(len(files)):
+        new_diskmap.append(freespaces[i])
+        new_diskmap.append(files[i])
+    new_diskmap.insert(0, temp)
 
-    while files:
-        if next_block:
-            blocks_remaining_at_end.insert(0, next_block)
-            print("--> adding file", next_block, "to beginning of remaining blocks:", blocks_remaining_at_end)          
-            blocks_remaining_at_end.insert(0, freespaces.pop())
-            print("--> adding freespace to beginning of remaining blocks:", blocks_remaining_at_end)
-        next_block = files.pop()
-        found_space = False
+    for i in range(len(files)-1, -1, -1):
 
-        for index, item in enumerate(new_diskmap):
+        for idx, item in enumerate(new_diskmap):
+
             if item[0] == -1:
-                if next_block[1] == item[1]:
-                    print("found free space in diskmap --> EXACT FIT")
-                    new_diskmap[index] = next_block
-                    print("--> inserting file", next_block, "to diskmap:", new_diskmap)
-                    if blocks_remaining_at_end:
-                        blocks_remaining_at_end.insert(0, (-1, next_block[1]))
-                        print("--> adding freespace", (-1, next_block[1]), "to beginning of remaining blocks:", blocks_remaining_at_end)
-                    next_block = None
-                    found_space = True
-                    break
-                if next_block[1] < item[1]:
-                    print("found free space in diskmap --> FREESPACE REMAINING")
-                    new_diskmap.insert(index, next_block)
-                    new_diskmap[index+1] = (item[0], item[1]-next_block[1])
-                    print("--> inserting file", next_block, "to diskmap:", new_diskmap)
-                    if blocks_remaining_at_end:
-                        blocks_remaining_at_end.insert(0, (-1, next_block[1]))
-                        print("--> adding freespace", (-1, next_block[1]), "to beginning of remaining blocks:", blocks_remaining_at_end)
-                    next_block = None
-                    found_space = True
+
+                if files[i][1] == item[1]:
+                    new_diskmap[new_diskmap.index(files[i])] = (-2, files[i][1])
+                    new_diskmap[idx] = files[i]
                     break
 
-        if not found_space:
-
-            for idx, free in enumerate(freespaces):
-                if next_block[1] <= free[1]:
-                    new_diskmap.append(next_block)
-                    print("--> adding file", next_block, "to diskmap:", new_diskmap)
-                    print("--> adding freespace to beginning of remaining blocks:", blocks_remaining_at_end)
-                    blocks_remaining_at_end.insert(0, (-1, next_block[1]))
-                    print("--> adding freespace", (-1, next_block[1]), "to beginning of remaining blocks:", blocks_remaining_at_end)
-                    if next_block[1] < free[1]:
-                        freespaces[idx] = (-2, free[1] - next_block[1])
-                    next_block = None
+                if files[i][1] < item[1]:
+                    new_diskmap[new_diskmap.index(files[i])] = (-2, files[i][1])
+                    new_diskmap.insert(idx, files[i])
+                    new_diskmap[idx+1] = (-1, item[1]-files[i][1])
                     break
 
-    if next_block:
-        blocks_remaining_at_end.insert(0, next_block)
-
-    remaining_freecpaces = [free for free in freespaces if free[0] == -1]
-    while remaining_freecpaces:
-        blocks_remaining_at_end.insert(0, remaining_freecpaces.pop())
-
-    return new_diskmap + blocks_remaining_at_end
-
-
-files, freespaces = decompress_diskmap(imported_data)
-print(files)
-print(freespaces)
-print(move_whole_blocks(files, freespaces))
+    return new_diskmap
 
 
 def calculate_filesystem_checksum(new_diskmap: list) -> int:
@@ -153,7 +110,8 @@ def calculate_filesystem_checksum(new_diskmap: list) -> int:
     for block in new_diskmap:
         for i in range(block[1]):
             idx += 1
-            checksum += idx * block[0]
+            if block[0] > 0:
+                checksum += idx * block[0]
 
     return checksum
 
@@ -166,7 +124,8 @@ def calculate_filesystem_checksum(new_diskmap: list) -> int:
 
 # print("Checksum of filesystem:", result_1)
 
-# new_diskmap = move_whole_blocks(files, freespaces)
-# result_2 = calculate_filesystem_checksum(new_diskmap)
+files, freespaces = decompress_diskmap(imported_data)
+new_diskmap = move_whole_blocks(files, freespaces)
+result_2 = calculate_filesystem_checksum(new_diskmap)
 
-# print("\nChecksum of filesystem:", result_2)
+print("\nChecksum of filesystem:", result_2)
